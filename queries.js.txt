@@ -1,0 +1,67 @@
+// queries.js
+use plpeliza_bookstore;
+
+// 1. Find all books in a specific genre
+db.books.find({ genre: "Fiction" });
+
+// 2. Find books published after 2000
+db.books.find({ published_year: { $gt: 2000 } });
+
+// 3. Find books by a specific author
+db.books.find({ author: "Paulo Coelho" });
+
+// 4. Update the price of a specific book
+db.books.updateOne(
+  { title: "The Alchemist" },
+  { $set: { price: 12.99 } }
+);
+
+// 5. Delete a book by its title
+db.books.deleteOne({ title: "Moby Dick" });
+
+// 6. Advanced query: in stock & published after 2010
+db.books.find({ in_stock: true, published_year: { $gt: 2010 } });
+
+// 7. Projection: title, author, price only
+db.books.find(
+  { genre: "Fiction" },
+  { title: 1, author: 1, price: 1, _id: 0 }
+);
+
+// 8. Sorting by price ascending
+db.books.find().sort({ price: 1 });
+
+// 9. Sorting by price descending
+db.books.find().sort({ price: -1 });
+
+// 10. Pagination: 5 books per page (skip first 5)
+db.books.find().skip(5).limit(5);
+
+// 11. Aggregation: average price by genre
+db.books.aggregate([
+  { $group: { _id: "$genre", avgPrice: { $avg: "$price" } } }
+]);
+
+// 12. Aggregation: author with most books
+db.books.aggregate([
+  { $group: { _id: "$author", count: { $sum: 1 } } },
+  { $sort: { count: -1 } },
+  { $limit: 1 }
+]);
+
+// 13. Aggregation: count books per decade
+db.books.aggregate([
+  {
+    $group: {
+      _id: { $subtract: [ "$published_year", { $mod: ["$published_year", 10] } ] },
+      count: { $sum: 1 }
+    }
+  },
+  { $sort: { _id: 1 } }
+]);
+
+// 14. Indexing: title
+db.books.createIndex({ title: 1 });
+
+// 15. Compound index: author & published_year
+db.books.createIndex({ author: 1, published_year: 1 });
